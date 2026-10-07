@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hospital Appointment Booking System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#02050f; --navy:#071433; --royal:#2459ff; --cyan:#22d3ee; --purple:#a855f7; --white:#f4f8ff;
+  --glass:rgba(8,18,48,.55); --border:rgba(34,211,238,.45); --muted:#9fb4d9;
+  --danger:#ff5d7a; --ok:#34f5b4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Poppins',system-ui,sans-serif;background:var(--black);color:var(--white);min-height:100vh;overflow-x:hidden}
+
+/* ---------- Background ---------- */
+.bg{position:fixed;inset:0;z-index:-3;
+  background:
+   radial-gradient(900px 600px at 80% 40%,rgba(36,89,255,.35),transparent 60%),
+   radial-gradient(700px 500px at 10% 90%,rgba(168,85,247,.18),transparent 60%),
+   linear-gradient(135deg,#01030a 0%,#06122e 55%,#02050f 100%)}
+.bg-grid{position:fixed;inset:0;z-index:-2;opacity:.18;
+  background-image:linear-gradient(rgba(34,211,238,.25) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.25) 1px,transparent 1px);
+  background-size:48px 48px;mask-image:radial-gradient(circle at 75% 45%,#000,transparent 70%);-webkit-mask-image:radial-gradient(circle at 75% 45%,#000,transparent 70%)}
+.hero-art{position:fixed;right:-2vw;bottom:0;height:100vh;width:min(62vw,820px);z-index:-2;
+  filter:blur(1.5px) brightness(.8);opacity:.85;pointer-events:none;animation:float 8s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-12px)}}
+.bg-overlay{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(2,5,15,.93) 0%,rgba(2,5,15,.72) 45%,rgba(2,5,15,.35) 100%);
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+#particles{position:fixed;inset:0;z-index:-1;pointer-events:none}
+
+/* ---------- Layout ---------- */
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px clamp(16px,4vw,48px);background:rgba(2,5,15,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(34,211,238,.2)}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Orbitron',sans-serif;font-weight:800;letter-spacing:1px;cursor:pointer;font-size:.95rem}
+.logo .cross{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--royal),var(--cyan));box-shadow:0 0 18px rgba(34,211,238,.7)}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav button{background:none;border:1px solid transparent;color:var(--muted);font:500 .85rem 'Poppins';padding:8px 14px;border-radius:999px;cursor:pointer;transition:.25s}
+nav button:hover,nav button.active{color:#fff;border-color:var(--border);background:rgba(34,211,238,.08);box-shadow:0 0 14px rgba(34,211,238,.35)}
+.menu-toggle{display:none;background:none;border:1px solid var(--border);color:#fff;border-radius:10px;padding:6px 12px;font-size:1.2rem}
+main{padding:clamp(20px,4vw,48px);max-width:1280px;margin:0 auto}
+.view{display:none}
+.view.active{display:block;animation:pageIn .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes pageIn{from{opacity:0;transform:translateY(24px) scale(.985);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+
+/* ---------- Gradient text ---------- */
+.grad{background:linear-gradient(90deg,#fff,var(--cyan),var(--royal),var(--purple),#fff,var(--cyan));background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite;
+  filter:drop-shadow(0 0 14px rgba(34,211,238,.45))}
+@keyframes shine{to{background-position:300% 0}}
+
+/* ---------- Hero ---------- */
+.hero{min-height:calc(100vh - 130px);display:flex;flex-direction:column;justify-content:center;max-width:680px}
+.badge{display:inline-block;width:fit-content;padding:6px 16px;border-radius:999px;border:1px solid var(--border);color:var(--cyan);font-size:.78rem;letter-spacing:2px;margin-bottom:20px;background:rgba(34,211,238,.07);box-shadow:0 0 14px rgba(34,211,238,.25)}
+.hero h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2rem,6.2vw,4.2rem);line-height:1.1;letter-spacing:1px}
+.hero p.sub{margin:18px 0 32px;font-size:clamp(1rem,2vw,1.25rem);color:var(--muted);font-weight:300}
+.btn-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:560px}
+.btn{position:relative;overflow:hidden;cursor:pointer;border:1px solid var(--border);color:#fff;font:600 .95rem 'Poppins';padding:15px 20px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(36,89,255,.35),rgba(34,211,238,.12));backdrop-filter:blur(10px);transition:.3s;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn::before{content:"";position:absolute;top:0;left:-120%;width:80%;height:100%;background:linear-gradient(120deg,transparent,rgba(255,255,255,.25),transparent);transition:.6s}
+.btn:hover{transform:translateY(-4px);box-shadow:0 0 26px rgba(34,211,238,.6),0 10px 30px rgba(36,89,255,.4);border-color:var(--cyan)}
+.btn:hover::before{left:140%}
+.btn:active{transform:translateY(-1px) scale(.98)}
+.btn.primary{background:linear-gradient(135deg,var(--royal),var(--cyan));border-color:transparent;box-shadow:0 0 22px rgba(36,89,255,.6)}
+.stats{display:flex;gap:28px;margin-top:40px;flex-wrap:wrap}
+.stat b{font-family:'Orbitron';font-size:1.5rem;display:block;color:var(--cyan);text-shadow:0 0 12px rgba(34,211,238,.7)}
+.stat span{color:var(--muted);font-size:.8rem}
+
+/* ---------- Cards / Glass ---------- */
+.glass{background:var(--glass);border:1px solid var(--border);border-radius:24px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 0 28px rgba(36,89,255,.25),inset 0 0 30px rgba(34,211,238,.04)}
+.section-title{font-family:'Orbitron',sans-serif;font-size:clamp(1.5rem,3.5vw,2.3rem);margin-bottom:6px}
+.section-sub{color:var(--muted);margin-bottom:28px}
+
+/* ---------- Form ---------- */
+.form-card{padding:clamp(20px,4vw,40px);max-width:880px}
+form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+label{font-size:.82rem;color:var(--cyan);letter-spacing:.5px;font-weight:500}
+input,select,textarea{width:100%;background:rgba(2,8,26,.7);border:1px solid rgba(80,130,255,.35);color:#fff;border-radius:12px;padding:12px 14px;font:400 .95rem 'Poppins';outline:none;transition:.25s}
+select option{background:#06122e;color:#fff}
+textarea{resize:vertical;min-height:90px}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.18),0 0 16px rgba(34,211,238,.4)}
+.field.invalid input,.field.invalid select,.field.invalid textarea{border-color:var(--danger);box-shadow:0 0 12px rgba(255,93,122,.35)}
+.err{color:var(--danger);font-size:.76rem;min-height:1em;display:none}
+.field.invalid .err{display:block}
+.hint{font-size:.76rem;color:var(--muted)}
+.gender-row{display:flex;gap:10px;flex-wrap:wrap}
+.gender-row label.opt{display:flex;align-items:center;gap:6px;padding:10px 16px;border:1px solid rgba(80,130,255,.35);border-radius:12px;cursor:pointer;color:#fff;transition:.25s;font-size:.9rem}
+.gender-row input{width:auto;accent-color:var(--cyan)}
+.gender-row label.opt:hover{border-color:var(--cyan);background:rgba(34,211,238,.08)}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px}
+.slot{padding:9px 6px;border-radius:10px;border:1px solid rgba(80,130,255,.4);background:rgba(2,8,26,.6);color:#fff;font:500 .8rem 'Poppins';cursor:pointer;transition:.2s}
+.slot:hover:not(:disabled){border-color:var(--cyan);box-shadow:0 0 12px rgba(34,211,238,.45)}
+.slot.sel{background:linear-gradient(135deg,var(--royal),var(--cyan));border-color:transparent;box-shadow:0 0 16px rgba(34,211,238,.6)}
+.slot:disabled{opacity:.3;cursor:not-allowed;text-decoration:line-through}
+
+/* ---------- Doctors ---------- */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.chip{padding:8px 16px;border-radius:999px;border:1px solid rgba(80,130,255,.4);background:rgba(8,18,48,.5);color:var(--muted);cursor:pointer;font:500 .82rem 'Poppins';transition:.25s}
+.chip:hover,.chip.active{color:#fff;border-color:var(--cyan);box-shadow:0 0 14px rgba(34,211,238,.45);background:rgba(34,211,238,.12)}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px}
+.doc{padding:24px;text-align:center;transition:.35s;position:relative;overflow:hidden}
+.doc::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(34,211,238,.18),transparent 60%);opacity:0;transition:.35s;pointer-events:none}
+.doc:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 0 34px rgba(34,211,238,.55),0 18px 40px rgba(0,0,0,.5);border-color:var(--cyan)}
+.doc:hover::after{opacity:1}
+.avatar{width:104px;height:104px;border-radius:50%;margin:0 auto 14px;padding:3px;background:conic-gradient(var(--cyan),var(--royal),var(--purple),var(--cyan));box-shadow:0 0 22px rgba(34,211,238,.5)}
+.avatar svg{width:100%;height:100%;border-radius:50%;display:block}
+.doc h3{font-size:1.08rem;margin-bottom:2px}
+.doc .spec{color:var(--cyan);font-size:.88rem;font-weight:500}
+.doc ul{list-style:none;margin:14px 0 18px;color:var(--muted);font-size:.84rem;display:grid;gap:5px}
+.doc ul b{color:#fff;font-weight:500}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);margin-right:6px}
+.doc .btn{width:100%;padding:12px}
+
+/* ---------- Appointments ---------- */
+.appt-list{display:grid;gap:16px}
+.appt{padding:20px 24px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;transition:.3s}
+.appt:hover{box-shadow:0 0 28px rgba(34,211,238,.45);transform:translateX(4px)}
+.appt h3{font-size:1.02rem}
+.appt p{color:var(--muted);font-size:.86rem;margin-top:3px}
+.appt .id{color:var(--cyan);font-family:'Orbitron';font-size:.75rem;letter-spacing:1px}
+.btn.small{padding:9px 16px;font-size:.8rem;border-radius:12px;border-color:rgba(255,93,122,.6);background:rgba(255,93,122,.12)}
+.btn.small:hover{border-color:var(--danger);box-shadow:0 0 18px rgba(255,93,122,.5)}
+.empty{padding:50px 20px;text-align:center;color:var(--muted)}
+
+/* ---------- Contact ---------- */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:980px}
+.contact-card{padding:28px}
+.contact-card h3{margin-bottom:14px;color:var(--cyan)}
+.info-row{display:flex;gap:12px;margin-bottom:14px;color:var(--muted);font-size:.92rem}
+.info-row b{color:#fff;display:block;font-weight:500}
+.contact-card form{grid-template-columns:1fr}
+
+/* ---------- Modal / Toast ---------- */
+.modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;background:rgba(1,3,10,.75);backdrop-filter:blur(8px);padding:18px}
+.modal.open{display:grid;animation:fade .3s}
+@keyframes fade{from{opacity:0}}
+.modal-box{max-width:480px;width:100%;padding:34px 28px;text-align:center;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.8);opacity:0}}
+.check{width:76px;height:76px;margin:0 auto 16px;border-radius:50%;display:grid;place-items:center;font-size:2.2rem;background:linear-gradient(135deg,var(--royal),var(--cyan));box-shadow:0 0 30px rgba(34,211,238,.8)}
+.summary{text-align:left;margin:18px 0 22px;display:grid;gap:8px;font-size:.9rem;background:rgba(2,8,26,.6);border:1px solid rgba(80,130,255,.3);border-radius:14px;padding:16px}
+.summary div{display:flex;justify-content:space-between;gap:12px}
+.summary span{color:var(--muted)}
+.summary b{text-align:right;font-weight:500}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,120px);z-index:200;padding:12px 22px;border-radius:14px;background:rgba(8,18,48,.95);border:1px solid var(--cyan);box-shadow:0 0 20px rgba(34,211,238,.5);transition:.4s;font-size:.9rem}
+.toast.show{transform:translate(-50%,0)}
+footer{text-align:center;color:var(--muted);font-size:.78rem;padding:30px 16px 40px}
+
+/* ---------- Responsive ---------- */
+@media (max-width:900px){
+  .hero-art{width:100vw;right:-20vw;opacity:.5}
+  .bg-overlay{background:linear-gradient(180deg,rgba(2,5,15,.85),rgba(2,5,15,.8))}
+  .contact-grid{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .menu-toggle{display:block}
+  nav{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;padding:14px;background:rgba(2,5,15,.96);border-bottom:1px solid var(--border)}
+  nav.open{display:flex}
+  nav button{text-align:left}
+  form{grid-template-columns:1fr}
+  .btn-grid{grid-template-columns:1fr}
+  .appt{grid-template-columns:1fr}
+  .hero{min-height:auto;padding:30px 0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- Background: original anime-style silhouette (decorative only) -->
+<div class="bg"></div>
+<div class="bg-grid"></div>
+<svg class="hero-art" viewBox="0 0 600 800" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d2a7a"/><stop offset=".6" stop-color="#050f2e"/><stop offset="1" stop-color="#01030a"/></linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a855f7"/></linearGradient>
+    <radialGradient id="aura" cx=".5" cy=".4" r=".6"><stop offset="0" stop-color="#2459ff" stop-opacity=".6"/><stop offset="1" stop-color="#2459ff" stop-opacity="0"/></radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <circle cx="320" cy="320" r="320" fill="url(#aura)"/>
+  <circle cx="320" cy="330" r="250" fill="none" stroke="url(#rim)" stroke-width="2" opacity=".5" stroke-dasharray="6 14"/>
+  <circle cx="320" cy="330" r="290" fill="none" stroke="#22d3ee" stroke-width="1" opacity=".3"/>
+  <!-- shoulders / hooded jacket -->
+  <path d="M40 800 C60 600 150 540 250 510 L390 510 C490 540 580 600 600 800 Z" fill="url(#body)" stroke="url(#rim)" stroke-width="3" filter="url(#glow)"/>
+  <path d="M250 510 C270 580 370 580 390 510" fill="none" stroke="#22d3ee" stroke-width="3" opacity=".8"/>
+  <path d="M320 585 L320 800" stroke="#22d3ee" stroke-width="2" opacity=".5"/>
+  <!-- neck + head -->
+  <path d="M285 440 L285 520 C300 545 340 545 355 520 L355 440 Z" fill="#071433"/>
+  <ellipse cx="320" cy="340" rx="92" ry="112" fill="#0a1a44" stroke="url(#rim)" stroke-width="3" filter="url(#glow)"/>
+  <!-- stylized swept hair -->
+  <path d="M215 330 C200 220 260 150 340 150 C420 150 450 230 428 330 C418 270 395 240 350 232 C330 262 270 262 245 300 C235 310 225 320 215 330 Z" fill="#050d26" stroke="url(#rim)" stroke-width="3" filter="url(#glow)"/>
+  <path d="M255 195 L215 130 L295 170 Z M320 170 L318 95 L365 168 Z M390 185 L450 130 L430 215 Z" fill="#050d26" stroke="#22d3ee" stroke-width="2.5"/>
+  <!-- glowing eyes -->
+  <path d="M265 345 L305 350" stroke="#22d3ee" stroke-width="6" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M340 350 L378 345" stroke="#22d3ee" stroke-width="6" stroke-linecap="round" filter="url(#glow)"/>
+  <!-- floating cyan shards -->
+  <g fill="#22d3ee" opacity=".7" filter="url(#glow)">
+    <polygon points="80,200 100,230 70,240"/><polygon points="520,150 545,190 505,185"/><polygon points="490,420 510,450 480,455"/><polygon points="110,430 130,455 100,465"/>
+  </g>
+</svg>
+<div class="bg-overlay"></div>
+<canvas id="particles"></canvas>
+
+<header>
+  <div class="logo" data-go="home"><span class="cross">✚</span><span class="grad">MEDICORE</span></div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+  <nav id="nav">
+    <button data-go="home" class="active">Home</button>
+    <button data-go="book">Book Appointment</button>
+    <button data-go="doctors">View Doctors</button>
+    <button data-go="appointments">My Appointments</button>
+    <button data-go="contact">Contact Us</button>
+  </nav>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section class="view active" id="view-home">
+    <div class="hero">
+      <span class="badge">● SMART CARE · 24/7 SUPPORT</span>
+      <h1 class="grad">HOSPITAL APPOINTMENT BOOKING</h1>
+      <p class="sub">Book your appointment quickly and easily.</p>
+      <div class="btn-grid">
+        <button class="btn primary" data-go="book">📅 Book Appointment</button>
+        <button class="btn" data-go="doctors">🩺 View Doctors</button>
+        <button class="btn" data-go="appointments">📋 My Appointments</button>
+        <button class="btn" data-go="contact">📞 Contact Us</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>6</b><span>Departments</span></div>
+        <div class="stat"><b>12+</b><span>Specialists</span></div>
+        <div class="stat"><b>24/7</b><span>Emergency</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOOK -->
+  <section class="view" id="view-book">
+    <h2 class="section-title grad">Book an Appointment</h2>
+    <p class="section-sub">Fill in your details and choose a doctor, date and time.</p>
+    <div class="glass form-card">
+      <form id="apptForm" novalidate>
+        <div class="field"><label for="name">Patient Name</label><input id="name" type="text" placeholder="e.g. Aarav Sharma" autocomplete="name"><span class="err"></span></div>
+        <div class="field"><label for="age">Age</label><input id="age" type="number" min="0" max="120" placeholder="e.g. 29"><span class="err"></span></div>
+        <div class="field" id="genderField"><label>Gender</label>
+          <div class="gender-row">
+            <label class="opt"><input type="radio" name="gender" value="Male"> Male</label>
+            <label class="opt"><input type="radio" name="gender" value="Female"> Female</label>
+            <label class="opt"><input type="radio" name="gender" value="Other"> Other</label>
+          </div><span class="err"></span></div>
+        <div class="field"><label for="phone">Phone Number</label><input id="phone" type="tel" placeholder="10-digit mobile number" maxlength="14" autocomplete="tel"><span class="err"></span></div>
+        <div class="field full"><label for="email">Email</label><input id="email" type="email" placeholder="you@example.com" autocomplete="email"><span class="err"></span></div>
+        <div class="field"><label for="dept">Select Department</label><select id="dept"></select><span class="err"></span></div>
+        <div class="field"><label for="doctor">Select Doctor</label><select id="doctor"></select><span class="err"></span></div>
+        <div class="field"><label for="date">Select Date</label><input id="date" type="date"><span class="hint" id="dateHint"></span><span class="err"></span></div>
+        <div class="field full" id="timeField"><label>Select Time</label><div class="slots" id="slots"></div><span class="hint" id="slotHint">Choose a doctor and date to see available times.</span><span class="err"></span></div>
+        <div class="field full"><label for="reason">Reason for Visit</label><textarea id="reason" placeholder="Briefly describe your symptoms or purpose of visit"></textarea><span class="err"></span></div>
+        <div class="field full"><button type="submit" class="btn primary">✔ Confirm Appointment</button></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- DOCTORS -->
+  <section class="view" id="view-doctors">
+    <h2 class="section-title grad">Our Specialists</h2>
+    <p class="section-sub">Experienced doctors across every major department.</p>
+    <div class="chips" id="chips"></div>
+    <div class="doc-grid" id="docGrid"></div>
+  </section>
+
+  <!-- APPOINTMENTS -->
+  <section class="view" id="view-appointments">
+    <h2 class="section-title grad">My Appointments</h2>
+    <p class="section-sub">Upcoming and past bookings saved on this device.</p>
+    <div class="appt-list" id="apptList"></div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="view" id="view-contact">
+    <h2 class="section-title grad">Contact Us</h2>
+    <p class="section-sub">We're here to help — reach out any time.</p>
+    <div class="contact-grid">
+      <div class="glass contact-card">
+        <h3>Hospital Information</h3>
+        <div class="info-row">📍<div><b>Address</b>12 Health Avenue, Medical District, Your City</div></div>
+        <div class="info-row">📞<div><b>Reception</b>+91 98765 43210</div></div>
+        <div class="info-row">🚑<div><b>Emergency (24/7)</b>108 / +91 98765 00000</div></div>
+        <div class="info-row">✉️<div><b>Email</b>care@medicore-hospital.example</div></div>
+        <div class="info-row">🕘<div><b>OPD Hours</b>Mon–Sat, 9:00 AM – 5:00 PM</div></div>
+      </div>
+      <div class="glass contact-card">
+        <h3>Send a Message</h3>
+        <form id="contactForm" novalidate>
+          <div class="field"><label for="cName">Your Name</label><input id="cName" type="text"><span class="err"></span></div>
+          <div class="field"><label for="cEmail">Email</label><input id="cEmail" type="email"><span class="err"></span></div>
+          <div class="field"><label for="cMsg">Message</label><textarea id="cMsg"></textarea><span class="err"></span></div>
+          <button class="btn primary" type="submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>© 2026 Hospital Appointment Booking System · For emergencies, call your local emergency number immediately.</footer>
+
+<!-- Confirmation modal -->
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="glass modal-box">
+    <div class="check">✓</div>
+    <h2 class="grad" style="font-family:Orbitron">Appointment Confirmed!</h2>
+    <p style="color:var(--muted);margin-top:6px">A confirmation has been saved to My Appointments.</p>
+    <div class="summary" id="summary"></div>
+    <div class="btn-grid" style="grid-template-columns:1fr 1fr">
+      <button class="btn" id="mClose">Close</button>
+      <button class="btn primary" id="mView">My Appointments</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ---------- Data ---------- */
+  const DEPARTMENTS = ['Cardiology','Neurology','Pediatrics','Orthopedics','Dermatology','General Medicine'];
+  const TIMES = ['09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','02:00 PM','02:30 PM','03:00 PM','03:30 PM','04:00 PM','04:30 PM'];
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DOCTORS = [
+    {id:1, name:'Dr. Rohan Mehta',   dept:'Cardiology',       spec:'Interventional Cardiologist', exp:15, days:[1,3,5], c:['#2459ff','#22d3ee']},
+    {id:2, name:'Dr. Ananya Iyer',   dept:'Cardiology',       spec:'Heart Failure Specialist',    exp:9,  days:[2,4,6], c:['#a855f7','#22d3ee']},
+    {id:3, name:'Dr. Vikram Nair',   dept:'Neurology',        spec:'Neurologist',                 exp:12, days:[1,2,4], c:['#2459ff','#a855f7']},
+    {id:4, name:'Dr. Sara Khan',     dept:'Pediatrics',       spec:'Child Health Specialist',     exp:8,  days:[1,2,3,4,5], c:['#22d3ee','#2459ff']},
+    {id:5, name:'Dr. Arjun Patel',   dept:'Orthopedics',      spec:'Joint & Spine Surgeon',       exp:18, days:[2,3,5,6], c:['#2459ff','#22d3ee']},
+    {id:6, name:'Dr. Meera Joshi',   dept:'Dermatology',      spec:'Skin & Hair Specialist',      exp:10, days:[1,3,4,6], c:['#a855f7','#2459ff']},
+    {id:7, name:'Dr. Karan Singh',   dept:'General Medicine', spec:'Physician',                   exp:7,  days:[1,2,3,4,5,6], c:['#22d3ee','#a855f7']},
+    {id:8, name:'Dr. Neha Reddy',    dept:'Neurology',        spec:'Epilepsy & Headache Expert',  exp:11, days:[3,5,6], c:['#2459ff','#22d3ee']},
+  ];
+
+  /* ---------- Helpers ---------- */
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  const store = {
+    get(){ try { return JSON.parse(localStorage.getItem('hab_appts')||'[]'); } catch(e){ return memory; } },
+    set(v){ try { localStorage.setItem('hab_appts', JSON.stringify(v)); } catch(e){ memory = v; } }
+  };
+  let memory = [];
+  const pad = n => String(n).padStart(2,'0');
+  const toISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const parseDate = iso => { const [y,m,d] = iso.split('-').map(Number); return new Date(y,m-1,d); };
+  const fmtDate = iso => parseDate(iso).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const timeToMin = t => { const [hm, ap] = t.split(' '); let [h,m] = hm.split(':').map(Number); if(ap==='PM'&&h!==12) h+=12; if(ap==='AM'&&h===12) h=0; return h*60+m; };
+  const availText = d => d.days.map(x=>DAYS[x]).join(', ');
+
+  function toast(msg){
+    const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast.t); toast.t = setTimeout(()=>t.classList.remove('show'), 2800);
+  }
+
+  function avatar(d){
+    const initials = d.name.replace('Dr. ','').split(' ').map(w=>w[0]).join('');
+    return `<svg viewBox="0 0 100 100" role="img" aria-label="${esc(d.name)}">
+      <defs><linearGradient id="g${d.id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${d.c[0]}"/><stop offset="1" stop-color="${d.c[1]}"/></linearGradient></defs>
+      <rect width="100" height="100" fill="#06122e"/>
+      <circle cx="50" cy="50" r="48" fill="url(#g${d.id})" opacity=".25"/>
+      <circle cx="50" cy="38" r="16" fill="url(#g${d.id})"/>
+      <path d="M18 100 C18 70 36 60 50 60 C64 60 82 70 82 100 Z" fill="url(#g${d.id})"/>
+      <path d="M38 66 L50 82 L62 66" fill="none" stroke="#fff" stroke-width="3" opacity=".85"/>
+      <rect x="60" y="72" width="14" height="14" rx="3" fill="#06122e" opacity=".7"/>
+      <path d="M67 75 v8 M63 79 h8" stroke="#22d3ee" stroke-width="2.2"/>
+      <text x="50" y="45" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="11" font-weight="800" fill="#fff" opacity=".0">${initials}</text>
+    </svg>`;
+  }
+
+  /* ---------- Navigation / page transitions ---------- */
+  function go(view){
+    if(!$('#view-'+view)) view = 'home';
+    $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-'+view));
+    $$('nav button').forEach(b => b.classList.toggle('active', b.dataset.go === view));
+    $('#nav').classList.remove('open');
+    if(view === 'appointments') renderAppts();
+    window.scrollTo({top:0, behavior:'smooth'});
+    if(location.hash !== '#'+view) history.replaceState(null,'','#'+view);
+  }
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-go]'); if(t) go(t.dataset.go);
+  });
+  $('#menuToggle').addEventListener('click', () => $('#nav').classList.toggle('open'));
+
+  /* ---------- Populate selects ---------- */
+  const deptSel = $('#dept'), docSel = $('#doctor'), dateIn = $('#date');
+  deptSel.innerHTML = '<option value="">-- Select Department --</option>' + DEPARTMENTS.map(d=>`<option>${d}</option>`).join('');
+  function fillDoctors(){
+    const list = DOCTORS.filter(d => !deptSel.value || d.dept === deptSel.value);
+    docSel.innerHTML = '<option value="">-- Select Doctor --</option>' + list.map(d=>`<option value="${d.id}">${d.name} (${d.spec})</option>`).join('');
+  }
+  fillDoctors();
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const max = new Date(today); max.setDate(max.getDate()+90);
+  dateIn.min = toISO(today); dateIn.max = toISO(max);
+
+  /* ---------- Time slots ---------- */
+  let selectedTime = '';
+  function renderSlots(){
+    const box = $('#slots'), hint = $('#slotHint');
+    selectedTime = ''; box.innerHTML = '';
+    const doc = DOCTORS.find(d => d.id == docSel.value);
+    if(!doc || !dateIn.value){ hint.textContent = 'Choose a doctor and date to see available times.'; return; }
+    const date = parseDate(dateIn.value);
+    if(!doc.days.includes(date.getDay())){ hint.textContent = `${doc.name} is not available on ${DAYS[date.getDay()]}. Available: ${availText(doc)}.`; return; }
+    const booked = store.get().filter(a => a.doctorId === doc.id && a.date === dateIn.value).map(a => a.time);
+    const isToday = dateIn.value === toISO(new Date());
+    const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+    let free = 0;
+    TIMES.forEach(t => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'slot'; b.textContent = t;
+      const gone = booked.includes(t) || (isToday && timeToMin(t) <= nowMin);
+      b.disabled = gone; if(!gone) free++;
+      b.addEventListener('click', () => {
+        $$('.slot', box).forEach(s => s.classList.remove('sel')); b.classList.add('sel');
+        selectedTime = t; clearErr($('#timeField'));
+      });
+      box.appendChild(b);
+    });
+    hint.textContent = free ? `${free} slot(s) available.` : 'No slots left on this date. Please choose another day.';
+  }
+
+  function updateDateHint(){
+    const doc = DOCTORS.find(d => d.id == docSel.value);
+    $('#dateHint').textContent = doc ? `Available: ${availText(doc)}` : '';
+  }
+
+  deptSel.addEventListener('change', () => { fillDoctors(); updateDateHint(); renderSlots(); });
+  docSel.addEventListener('change', () => {
+    const doc = DOCTORS.find(d => d.id == docSel.value);
+    if(doc && deptSel.value !== doc.dept){ deptSel.value = doc.dept; }
+    updateDateHint(); renderSlots();
+  });
+  dateIn.addEventListener('change', renderSlots);
+
+  /* ---------- Validation ---------- */
+  function setErr(field, msg){ field.classList.add('invalid'); $('.err', field).textContent = msg; }
+  function clearErr(field){ field.classList.remove('invalid'); const e = $('.err', field); if(e) e.textContent = ''; }
+  $$('form .field input, form .field select, form .field textarea').forEach(el => {
+    el.addEventListener('input', () => clearErr(el.closest('.field')));
+  });
+  $$('input[name=gender]').forEach(r => r.addEventListener('change', () => clearErr($('#genderField'))));
+
+  function validateAppt(){
+    let ok = true, first = null;
+    const fail = (id, msg) => { const f = $(id).closest ? $(id).closest('.field') : $(id); setErr(f, msg); ok = false; if(!first) first = f; };
+    const name = $('#name').value.trim(), age = $('#age').value, phone = $('#phone').value.replace(/[\s-]/g,''),
+          email = $('#email').value.trim(), reason = $('#reason').value.trim();
+
+    if(!/^[A-Za-z][A-Za-z .'-]{1,59}$/.test(name)) fail('#name','Enter a valid name (letters only, min 2 characters).');
+    if(age === '' || !(+age >= 0 && +age <= 120) || !Number.isInteger(+age)) fail('#age','Enter a valid age between 0 and 120.');
+    if(!$('input[name=gender]:checked')) fail('#genderField','Please select a gender.');
+    if(!/^(\+91)?[6-9]\d{9}$/.test(phone)) fail('#phone','Enter a valid 10-digit mobile number.');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) fail('#email','Enter a valid email address.');
+    if(!deptSel.value) fail('#dept','Please select a department.');
+    if(!docSel.value) fail('#doctor','Please select a doctor.');
+    if(!dateIn.value){ fail('#date','Please select a date.'); }
+    else {
+      const d = parseDate(dateIn.value), doc = DOCTORS.find(x => x.id == docSel.value);
+      if(d < today) fail('#date','Date cannot be in the past.');
+      else if(d > max) fail('#date','Appointments can be booked up to 90 days ahead.');
+      else if(doc && !doc.days.includes(d.getDay())) fail('#date',`${doc.name} is unavailable on ${DAYS[d.getDay()]}.`);
+    }
+    if(!selectedTime) fail('#timeField','Please select a time slot.');
+    if(reason.length < 10) fail('#reason','Please describe your reason (at least 10 characters).');
+
+    // duplicate / double-booking checks
+    if(ok){
+      const all = store.get();
+      if(all.some(a => a.doctorId == docSel.value && a.date === dateIn.value && a.time === selectedTime)){
+        fail('#timeField','That slot was just taken. Please pick another.'); renderSlots();
+      } else if(all.some(a => a.phone === phone && a.date === dateIn.value && a.time === selectedTime)){
+        fail('#phone','You already have an appointment at this date and time.');
+      }
+    }
+    if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
+    return ok;
+  }
+
+  /* ---------- Submit booking ---------- */
+  $('#apptForm').addEventListener('submit', e => {
+    e.preventDefault();
+    if(!validateAppt()) { toast('Please fix the highlighted fields.'); return; }
+    const doc = DOCTORS.find(d => d.id == docSel.value);
+    const appt = {
+      id: 'APT-' + Date.now().toString(36).toUpperCase().slice(-6),
+      name: $('#name').value.trim(), age: +$('#age').value, gender: $('input[name=gender]:checked').value,
+      phone: $('#phone').value.replace(/[\s-]/g,''), email: $('#email').value.trim(),
+      dept: doc.dept, doctorId: doc.id, doctor: doc.name, date: dateIn.value, time: selectedTime,
+      reason: $('#reason').value.trim(), created: new Date().toISOString()
+    };
+    const all = store.get(); all.push(appt); store.set(all);
+    showModal(appt);
+    $('#apptForm').reset(); fillDoctors(); selectedTime = ''; updateDateHint(); renderSlots();
+  });
+
+  function showModal(a){
+    $('#summary').innerHTML = [
+      ['Booking ID', a.id], ['Patient', a.name], ['Department', a.dept], ['Doctor', a.doctor],
+      ['Date', fmtDate(a.date)], ['Time', a.time]
+    ].map(([k,v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join('');
+    $('#modal').classList.add('open');
+  }
+  const closeModal = () => $('#modal').classList.remove('open');
+  $('#mClose').addEventListener('click', closeModal);
+  $('#mView').addEventListener('click', () => { closeModal(); go('appointments'); });
+  $('#modal').addEventListener('click', e => { if(e.target.id === 'modal') closeModal(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+  /* ---------- Doctors view ---------- */
+  let activeDept = 'All';
+  function renderChips(){
+    $('#chips').innerHTML = ['All', ...DEPARTMENTS].map(d => `<button class="chip ${d===activeDept?'active':''}" data-dept="${d}">${d}</button>`).join('');
+  }
+  function renderDoctors(){
+    const list = DOCTORS.filter(d => activeDept === 'All' || d.dept === activeDept);
+    $('#docGrid').innerHTML = list.map(d => `
+      <article class="glass doc">
+        <div class="avatar">${avatar(d)}</div>
+        <h3>${d.name}</h3>
+        <div class="spec">${d.dept} · ${d.spec}</div>
+        <ul>
+          <li>🏅 Experience: <b>${d.exp} years</b></li>
+          <li><span class="dot"></span>Available: <b>${availText(d)}</b></li>
+        </ul>
+        <button class="btn primary" data-book="${d.id}">Book Now</button>
+      </article>`).join('');
+  }
+  $('#chips').addEventListener('click', e => {
+    const c = e.target.closest('.chip'); if(!c) return;
+    activeDept = c.dataset.dept; renderChips(); renderDoctors();
+  });
+  $('#docGrid').addEventListener('click', e => {
+    const b = e.target.closest('[data-book]'); if(!b) return;
+    const doc = DOCTORS.find(d => d.id == b.dataset.book);
+    deptSel.value = doc.dept; fillDoctors(); docSel.value = doc.id; updateDateHint(); renderSlots();
+    go('book'); toast(`Booking with ${doc.name}`);
+  });
+
+  /* ---------- My Appointments ---------- */
+  function renderAppts(){
+    const list = store.get().sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+    const box = $('#apptList');
+    if(!list.length){
+      box.innerHTML = `<div class="glass empty"><p style="font-size:2rem">📭</p><p>No appointments yet.</p><br><button class="btn primary" data-go="book" style="margin:auto">Book Appointment</button></div>`;
+      return;
+    }
+    box.innerHTML = list.map(a => {
+      const past = parseDate(a.date) < today;
+      return `<div class="glass appt">
+        <div>
+          <div class="id">${a.id} ${past ? '· COMPLETED' : '· UPCOMING'}</div>
+          <h3>${esc(a.doctor)} — ${esc(a.dept)}</h3>
+          <p>📅 ${fmtDate(a.date)} at ${a.time}</p>
+          <p>👤 ${esc(a.name)} (${a.age}, ${a.gender}) · 📞 ${esc(a.phone)}</p>
+          <p>📝 ${esc(a.reason)}</p>
+        </div>
+        <button class="btn small" data-cancel="${a.id}">Cancel</button>
+      </div>`;
+    }).join('');
+  }
+  $('#apptList').addEventListener('click', e => {
+    const b = e.target.closest('[data-cancel]'); if(!b) return;
+    if(!confirm('Cancel this appointment?')) return;
+    store.set(store.get().filter(a => a.id !== b.dataset.cancel));
+    renderAppts(); renderSlots(); toast('Appointment cancelled.');
+  });
+
+  /* ---------- Contact form ---------- */
+  $('#contactForm').addEventListener('submit', e => {
+    e.preventDefault();
+    let ok = true;
+    const chk = (id, test, msg) => { const f = $(id).closest('.field'); if(!test){ setErr(f,msg); ok = false; } };
+    chk('#cName', $('#cName').value.trim().length >= 2, 'Please enter your name.');
+    chk('#cEmail', /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('#cEmail').value.trim()), 'Enter a valid email.');
+    chk('#cMsg', $('#cMsg').value.trim().length >= 10, 'Message must be at least 10 characters.');
+    if(!ok) return;
+    e.target.reset(); toast('Thank you! We will get back to you shortly.');
+  });
+
+  /* ---------- Particles ---------- */
+  (function particles(){
+    const c = $('#particles'), ctx = c.getContext('2d'); let w, h, pts = [];
+    const resize = () => { w = c.width = innerWidth; h = c.height = innerHeight; };
+    resize(); addEventListener('resize', resize);
+    for(let i=0;i<50;i++) pts.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.8+.4,s:Math.random()*.4+.1,a:Math.random()});
+    (function loop(){
+      ctx.clearRect(0,0,w,h);
+      pts.forEach(p => {
+        p.y -= p.s; p.a += .01; if(p.y < -5){ p.y = h+5; p.x = Math.random()*w; }
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283);
+        ctx.fillStyle = `rgba(34,211,238,${.25+.35*Math.abs(Math.sin(p.a))})`; ctx.shadowBlur = 8; ctx.shadowColor = '#22d3ee'; ctx.fill();
+      });
+      requestAnimationFrame(loop);
+    })();
+  })();
+
+  /* ---------- Init ---------- */
+  renderChips(); renderDoctors(); updateDateHint();
+  go((location.hash || '#home').slice(1));
+  addEventListener('hashchange', () => go(location.hash.slice(1)));
+})();
+</script>
+</body>
+</html>
